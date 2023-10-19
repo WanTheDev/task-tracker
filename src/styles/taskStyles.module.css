@@ -1,0 +1,68 @@
+.taskTextWrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    &[data-completed] div {
+        &[data-decoration=title] {
+            text-decoration: line-through;
+        }
+        &[data-decoration=desc] {
+            font-style: italic;
+        }
+    }
+    &[data-editing-tag] .taskBadgesWrapper div {
+        max-height: 28px;
+        max-width: 164px;
+        padding: 4px 8px;
+    }
+    &[data-editing-tag] .addBadgeButton {
+        opacity: 1;
+        max-height: 20px;
+    }
+}
+
+.taskTextWrapper:hover .addBadgeButton {
+    opacity: 1;
+    max-height: 20px;
+}
+.taskTextWrapper:hover .taskBadgesWrapper div {
+    max-height: 28px;
+    max-width: 164px;
+    padding: 4px 8px;
+}
+  
+.taskLeftSide {
+display: flex;
+align-items: center;
+gap: var(--mantine-spacing-sm);
+width: 100%;
+}
+
+.taskBadgesWrapper {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    height: fit-content;
+    gap: var(--mantine-spacing-sm);
+}
+
+.addBadgeButton {
+    border: 1px solid darkgray;
+    text-align: center;
+    line-height: 0;
+    border-radius: 50%;
+    height: auto;
+    max-height: 0;
+    aspect-ratio: 1;
+    opacity: 0;
+    transition: opacity 0.25s, max-height 0.4s ease;
+    margin-top: 4px;
+    padding: 2px;
+    
+}
+.addBadgeButton:hover {
+    background: rgba(169, 169, 169, 0.2)
+}
+.addBadgeButton:active {
+    background: rgba(169, 169, 169, 0.35)
+}

@@ -1,0 +1,44 @@
+.taskListWrapper {
+  display: flex;
+  flex-direction: column;
+  padding: var(--mantine-spacing-xl)
+}
+
+.taskWrapper {
+  border-left: 2px solid silver;
+  border-right: 2px solid silver;
+  transition: scale 0.33s ease;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row;
+  
+  gap: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-sm);
+}
+
+
+
+.addNewButton {
+  height: 64px;
+  border-left: 2px solid silver;
+  border-right: 2px solid silver;
+}
+
+.taskInput {
+  border: none;
+  outline: none;
+  background: none;
+  &[data-name] {
+    font-size: var(--mantine-font-size-xl);
+    line-height: var(--mantine-font-size-sm);
+  }
+}
+
+.unselectable {
+  user-select: none;
+  -webkit-user-drag: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+}
