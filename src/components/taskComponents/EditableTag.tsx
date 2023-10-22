@@ -1,12 +1,9 @@
-import { useRef } from 'react'
 import classes from '../../styles/taskTextStyles.module.css'
 
-export default function EditableTag({tag, editing, editTag, tagOnChange, applyChanges}:{tag:string, editing:boolean, editTag:() => void, tagOnChange: (newTag:string) => void, applyChanges: (tagName:string, tagColor:string) => void}, ref:any) {
+export default function EditableTag({tag, editTag, tagOnChange}:{tag:string, editTag:() => void, tagOnChange: (newTag:string) => void}) {
     return(
     <div className={classes.taskTag} onClick={() => {editTag()}}>
-        <span contentEditable={true} onInput={(e) => {tagOnChange(e.currentTarget.innerHTML)}} className={classes.taskTagInput}>
-            {tag.toString()}
-        </span>
+        <input onInput={(e) => {tagOnChange(e.currentTarget.value)}} className={classes.taskTagInput} value={tag.toString()} />
     </div>
     )
 }

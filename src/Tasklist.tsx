@@ -24,13 +24,25 @@ export class TaskClass {
 
 export type TaskType = InstanceType<typeof TaskClass>
 
-export default function TaskList() {
+export default function TaskList({searchType, searchValue} : {searchType: string, searchValue: string}) {
   const [taskList, tasks] = useListState<TaskType>();
   const [_taskId, setTaskId, ref] = useState<number>(0)
   const [tagsMap, tagsMapAction] = useMap<string,Array<number>>()
+  const [rawTag, setRawTag] = useState<string>('')
   const getNewTaskId = ():number => {
     setTaskId(c => c+1)
     return(ref.current-1)
+  }
+
+  const isFiltered = (taskTitle:string, taskTags:string[]) => {
+    if (searchValue.length==0) { return(false) }
+    if (searchType=='name') { return(taskTitle.toLowerCase().includes(searchValue.toLowerCase())==false) }
+    for(var i = 0; i < taskTags.length; i++) {
+      if (taskTags[i].toLowerCase().includes(searchValue.toLowerCase())==true) {
+        return(false)
+      }
+    }
+    return(true)
   }
 
   const taskFunctions = {
@@ -52,33 +64,34 @@ export default function TaskList() {
     editIndex: (taskIndex:number, taskProp:keyof TaskClass, newValue:any) => {
       tasks.setItemProp(taskIndex, taskProp, newValue)
     },
-    editTag: (taskIndex:number, tagIndex:number, tagName:string, tagColor:string) => {
-
-      // I think I have to split this edit tag into 2 functions
-      // one edits the tag name in the tasks list using tasks.setItemProp
-      // the other one submits the change into the tagsMap which is invoked on new name/color submit
-
-      // plus fix the console error
-
-      var curTag=taskList[taskIndex].tags[tagIndex]
-      console.log(tagIndex)
-      
-      if (tagName!=curTag) {
-        var curTagArr=tagsMap.get(curTag)
-        console.log(curTagArr)
+    submitTagChange: (taskIndex:number, tagName:string) => {
+      if (rawTag!=tagName && rawTag!="") {
+        var curTagArr=tagsMap.get(rawTag)
         if (curTagArr!=undefined) {
-          tagsMapAction.set(curTag, curTagArr.filter((_v, curIndex) => curIndex!=taskIndex))
+          if (curTagArr.length==1) { 
+            tagsMapAction.remove(rawTag)
+          }else {
+            tagsMapAction.set(rawTag, curTagArr.filter((_v, curIndex) => curIndex!=taskIndex))
+          }
         }
-        tagsMapAction.set(tagName, [...(tagsMap.get(tagName) ?? []), taskIndex])
-        tasks.setItemProp(taskIndex, `tags`, taskList[taskIndex].tags.map((_v, curIndex) => curIndex==tagIndex ? tagName : _v))
+        if (tagName!="") {
+          tagsMapAction.set(tagName, [...(tagsMap.get(tagName) ?? []), taskIndex])
+        }
       }
+      setRawTag('')
+    },
+    editTag: (taskIndex:number, tagIndex:number, tagName:string) => {
+      if (rawTag=="") { setRawTag(taskList[taskIndex].tags[tagIndex]) }
+      tasks.setItemProp(taskIndex, `tags`, taskList[taskIndex].tags.map((_v, curIndex) => curIndex==tagIndex ? tagName : _v))
     },
     newTag: (taskIndex:number) => {
       tasks.setItemProp(taskIndex, 'tags', [...taskList[taskIndex].tags, "New tag"])
-      tagsMapAction.set("New tag", [...(tagsMap.get("New tag") ?? []), taskIndex])
+      tagsMapAction.set("new tag", [...(tagsMap.get("New tag") ?? []), taskIndex])
+    },
+    deleteEmptyTags: (taskIndex:number) => {
+      tasks.setItemProp(taskIndex, `tags`, taskList[taskIndex].tags.filter(curTag => curTag!=""))
     }
   }
-
   return (
     <div className={classes.taskListWrapper}>
       <DragDropContext
@@ -87,7 +100,7 @@ export default function TaskList() {
         <Droppable droppableId="dnd-list" direction="vertical">
           {(provided) => (
             <div {...provided.droppableProps} ref={provided.innerRef}>
-              {taskList.map((task, taskIndex) => 
+              {taskList.map((task, taskIndex) => isFiltered(task.title, task.tags) ? null :
                 <Draggable key={task.id} index={taskIndex} draggableId={task.id}>
                   {(provided, snapshot) =>
                     <div
@@ -108,7 +121,9 @@ export default function TaskList() {
                         deleteIndex={taskFunctions.deleteIndex}
                         editIndex={taskFunctions.editIndex}
                         editTag={taskFunctions.editTag}
+                        submitTagChange={taskFunctions.submitTagChange}
                         newTag={taskFunctions.newTag}
+                        deleteEmptyTags={taskFunctions.deleteEmptyTags}
                         
                         />
                     </div>

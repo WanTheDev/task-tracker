@@ -17,32 +17,38 @@ interface TaskProps {
     deleteIndex: (index:number) => void;
     editIndex: (index:number, taskProp:keyof TaskClass, newValue:any) => void;
     newTag: (index:number) => void;
-    editTag: (taskIndex:number, tagIndex:number, tagName: string, tagColor: string) => void;
+    editTag: (taskIndex:number, tagIndex:number, tagName: string) => void;
+    submitTagChange: (taskIndex:number, tagName: string) => void;
+    deleteEmptyTags: (taskIndex:number) => void;
 }
 
-export default function Task({data, listIndex, completeIndex, deleteIndex, editIndex, newTag, editTag}:TaskProps) {
+export default function Task({data, listIndex, completeIndex, deleteIndex, editIndex, editTag, newTag, submitTagChange, deleteEmptyTags}:TaskProps) {
     const [editingState, setEditState, editRef] = useState<'' | 'tag' | 'title' | 'desc'>('')
     const getDescComps = () => getTaskComponents('desc', data, () => setEditState('desc'))
     const getTitleComps = () => getTaskComponents('title', data, () => setEditState('title'))
     
     const [descDivs, setDescDivs] = useState<any>(getDescComps())
     const [titleDivs, setTitleDivs] = useState<any>(getTitleComps())
-    const [editingTag, setEditTag] = useState<number>(-1)
+    const [editingTag, setEditTag] = useState<string>('')
     
     
     const resetEditState = () => {
       if (editRef.current=='desc') {setDescDivs(getDescComps())}
       else if (editRef.current=='title') {setTitleDivs(getTitleComps())}
+      else if (editRef.current=='tag') {
+        if (editingTag=='') { deleteEmptyTags(listIndex) }
+        submitTagChange(listIndex, editingTag)
+      }
       setEditState('')
-      setEditTag(-1)
+      setEditTag('')
     }
-    const editTagIndex = (tagIndex:number) => {
-        setEditState('tag')
-        setEditTag(tagIndex)
-    }
-    const applyTagChanges = (tagIndex:number, tagName:string, tagColor:string) => {
-        resetEditState()
-        editTag(listIndex, tagIndex, tagName, tagColor)
+    const editTagIndex = (tagIndex:number, tagName:string) => {
+      if (tagName==undefined) {tagName=data.tags[tagIndex]}
+      setEditState('tag')
+      if (tagName!=data.tags[tagIndex]) {
+        editTag(listIndex, tagIndex, tagName)
+      }
+      setEditTag(tagName)
     }
     const ref = useClickOutside(resetEditState);
   
@@ -67,12 +73,10 @@ export default function Task({data, listIndex, completeIndex, deleteIndex, editI
             <div className={classes.taskBadgesWrapper} ref={editingState=='tag' ? ref : null}>
                 {
                     data.tags.map((curTag, tagIndex) => <EditableTag
-                        editing={tagIndex==editingTag}
                         tag={curTag}
-                        editTag={() => editTagIndex(tagIndex)}
-                        tagOnChange={(newTag:string) => editTag(listIndex, tagIndex, newTag, 'blue')}
+                        editTag={() => editTagIndex(tagIndex, curTag)}
+                        tagOnChange={(newTag:string) => editTagIndex(tagIndex, newTag)}
                         //deleteTag={() => deleteTagIndex(tagIndex)} // to do later
-                        applyChanges={(tagName:string, tagColor:string) => applyTagChanges(tagIndex, tagName, tagColor)}
                         />)
                 }
                 <UnstyledButton component='img' src={'./icons/plus.svg'} className={classes.addBadgeButton} onClick={() => newTag(listIndex)} />
